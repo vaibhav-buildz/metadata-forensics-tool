@@ -4,13 +4,14 @@ Generates cryptographic (MD5, SHA-256) and perceptual hashes for image verificat
 """
 import hashlib
 import logging
+from typing import Any
 from PIL import Image
 import imagehash
 
 logger = logging.getLogger(__name__)
 
 
-def generate_hashes(file_path: str, file_content: bytes) -> dict:
+def generate_hashes(file_path: str, file_content: bytes) -> dict[str, Any]:
     """
     Generate multiple hash fingerprints for an image.
 

@@ -27,7 +27,7 @@ def _get_yolo_model():
     return _yolo_model if _yolo_model != "FAILED" else None
 
 
-def detect_faces_and_objects(file_path: str) -> dict:
+def detect_faces_and_objects(file_path: str) -> dict[str, Any]:
     """
     Detect faces and objects in an image.
 
@@ -85,7 +85,7 @@ def detect_faces_and_objects(file_path: str) -> dict:
     return result
 
 
-def _detect_faces(img: np.ndarray) -> dict:
+def _detect_faces(img: np.ndarray) -> dict[str, Any]:
     """Detect faces using OpenCV Haar Cascade."""
     result = {"count": 0, "details": []}
 
@@ -118,7 +118,7 @@ def _detect_faces(img: np.ndarray) -> dict:
     return result
 
 
-def _detect_objects(file_path: str) -> dict:
+def _detect_objects(file_path: str) -> dict[str, Any]:
     """Detect objects using YOLOv8n."""
     result = {"objects": []}
 

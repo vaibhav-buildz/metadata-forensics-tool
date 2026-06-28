@@ -4,6 +4,7 @@ Extracts comprehensive metadata from images using Pillow and exifread.
 """
 import os
 import logging
+from typing import Any
 from datetime import datetime
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
@@ -14,7 +15,7 @@ from utils.helpers import safe_str, format_file_size
 logger = logging.getLogger(__name__)
 
 
-def extract_metadata(file_path: str, original_filename: str, file_size: int) -> dict:
+def extract_metadata(file_path: str, original_filename: str, file_size: int) -> dict[str, Any]:
     """
     Extract EXIF metadata from an image file.
 
@@ -80,7 +81,7 @@ def extract_metadata(file_path: str, original_filename: str, file_size: int) -> 
     return result
 
 
-def _parse_pillow_exif(exif_data: dict, result: dict):
+def _parse_pillow_exif(exif_data: dict[str, Any], result: dict[str, Any]):
     """Parse EXIF data from Pillow's _getexif()."""
     tag_map = {}
     for tag_id, value in exif_data.items():
@@ -181,7 +182,7 @@ def _parse_pillow_exif(exif_data: dict, result: dict):
             pass
 
 
-def _parse_exifread_tags(tags: dict, result: dict):
+def _parse_exifread_tags(tags: dict[str, Any], result: dict[str, Any]):
     """Fill in any gaps using exifread tags."""
     tag_str = lambda key: safe_str(tags.get(key), None)
 

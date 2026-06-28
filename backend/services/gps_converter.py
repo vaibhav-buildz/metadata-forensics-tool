@@ -14,7 +14,7 @@ from config import NOMINATIM_USER_AGENT, NOMINATIM_TIMEOUT
 logger = logging.getLogger(__name__)
 
 
-def extract_gps_location(file_path: str) -> dict:
+def extract_gps_location(file_path: str) -> dict[str, Any]:
     """
     Extract GPS coordinates from image EXIF and reverse geocode to an address.
 
@@ -78,7 +78,7 @@ def extract_gps_location(file_path: str) -> dict:
     return result
 
 
-def _extract_gps_exif(file_path: str) -> dict | None:
+def _extract_gps_exif(file_path: str) -> dict[str, Any] | None:
     """Extract GPSInfo from image EXIF data."""
     try:
         with Image.open(file_path) as img:

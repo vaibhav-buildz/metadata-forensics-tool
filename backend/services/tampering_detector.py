@@ -4,6 +4,7 @@ Analyzes images for signs of manipulation using multiple heuristics.
 """
 import os
 import logging
+from typing import Any
 import struct
 from datetime import datetime
 from PIL import Image
@@ -28,7 +29,7 @@ EDITOR_SOFTWARE = [
 ]
 
 
-def detect_tampering(file_path: str, metadata: dict) -> dict:
+def detect_tampering(file_path: str, metadata: dict[str, Any]) -> dict[str, Any]:
     """
     Analyze an image for signs of tampering/manipulation.
 
@@ -92,7 +93,7 @@ def detect_tampering(file_path: str, metadata: dict) -> dict:
     }
 
 
-def _check_date_mismatch(metadata: dict, file_path: str) -> dict:
+def _check_date_mismatch(metadata: dict[str, Any], file_path: str) -> dict[str, Any]:
     """Compare EXIF datetime vs file modification date."""
     result = {"penalty": 0, "reason": None}
 
@@ -121,7 +122,7 @@ def _check_date_mismatch(metadata: dict, file_path: str) -> dict:
     return result
 
 
-def _check_editor_software(metadata: dict) -> dict:
+def _check_editor_software(metadata: dict[str, Any]) -> dict[str, Any]:
     """Check if editing software is recorded in EXIF."""
     result = {"penalty": 0, "reason": None}
 
@@ -139,7 +140,7 @@ def _check_editor_software(metadata: dict) -> dict:
     return result
 
 
-def _check_compression_artifacts(file_path: str) -> dict:
+def _check_compression_artifacts(file_path: str) -> dict[str, Any]:
     """
     Analyze JPEG quantization tables for re-compression artifacts.
     Non-standard quantization tables may indicate the image was re-saved.
@@ -176,7 +177,7 @@ def _check_compression_artifacts(file_path: str) -> dict:
     return result
 
 
-def _check_ela(file_path: str) -> dict:
+def _check_ela(file_path: str) -> dict[str, Any]:
     """
     Perform Error Level Analysis (ELA).
     Re-saves at a known quality and checks if error levels are uniform.

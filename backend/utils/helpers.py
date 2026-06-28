@@ -4,7 +4,7 @@ Utility helper functions.
 import os
 
 
-def validate_file_extension(filename: str, allowed: set) -> bool:
+def validate_file_extension(filename: str, allowed: set[str]) -> bool:
     """Check if file extension is in the allowed set."""
     if not filename:
         return False
