@@ -98,15 +98,18 @@ def extract_metadata(file_path: str) -> Dict[str, Any]:
                     ifd_0th = exif_dict.get("0th")
                     if isinstance(ifd_0th, dict):
                         if piexif.ImageIFD.Model in ifd_0th:
+                            # type: ignore
                             result["camera"] = safe_decode(ifd_0th[piexif.ImageIFD.Model])
                         
                         if piexif.ImageIFD.Orientation in ifd_0th:
+                            # type: ignore
                             result["orientation"] = _parse_orientation(ifd_0th[piexif.ImageIFD.Orientation])
 
                     # Process Exif IFD (contains datetime)
                     ifd_exif = exif_dict.get("Exif")
                     if isinstance(ifd_exif, dict):
                         if piexif.ExifIFD.DateTimeOriginal in ifd_exif:
+                            # type: ignore
                             dt_str = safe_decode(ifd_exif[piexif.ExifIFD.DateTimeOriginal])
                             # Normalize "YYYY:MM:DD HH:MM:SS" to "YYYY-MM-DD HH:MM:SS"
                             result["datetime"] = dt_str.replace(":", "-", 2)
@@ -117,7 +120,12 @@ def extract_metadata(file_path: str) -> Dict[str, Any]:
                         decoded_gps = {}
                         for tag, value in ifd_gps.items():
                             # Convert integer tags to strings for JSON, and decode the value
-                            tag_name = piexif.TAGS["GPS"].get(tag, {}).get("name", str(tag))
+                            tag_name = str(tag)
+                            if isinstance(tag, int):
+                                tag_info = piexif.TAGS["GPS"].get(tag)
+                                if isinstance(tag_info, dict) and "name" in tag_info:
+                                    tag_name = str(tag_info["name"])
+                                    
                             decoded_gps[tag_name] = safe_decode(value)
                                 
                         if decoded_gps:

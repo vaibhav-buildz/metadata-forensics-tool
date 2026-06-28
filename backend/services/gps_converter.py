@@ -8,7 +8,9 @@ Converts raw GPS EXIF data to human-readable addresses using geopy.
 """
 import ast
 from typing import Dict, Any, Optional
+# type: ignore
 from geopy.geocoders import Nominatim
+# type: ignore
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 
 def convert_dms_to_decimal(degrees: float, minutes: float, seconds: float) -> float:

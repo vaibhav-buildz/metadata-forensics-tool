@@ -5,6 +5,7 @@ from fastapi import APIRouter, UploadFile, File
 from services.metadata_extractor import extract_metadata
 from services.gps_converter import convert_gps_to_address
 from services.tampering_detector import detect_tampering
+from services.hash_generator import generate_hash_fingerprint
 
 router = APIRouter()
 
@@ -52,13 +53,25 @@ async def analyze_image(file: UploadFile = File(...)):
                 "verdict": "✅ Authentic (no signs of tampering)"
             }
         
+        # Safely generate hashes
+        try:
+            hashes = generate_hash_fingerprint(temp_filepath)
+        except Exception as hash_err:
+            print(f"Warning: Failed to generate hashes. Reason: {hash_err}")
+            hashes = {
+                "md5": None,
+                "sha256": None,
+                "perceptual_hash": None,
+                "use_case": {}
+            }
+        
         return {
             "status": "success", 
             "metadata": metadata,
             "location": location,
             "tampering": tampering,
+            "hashes": hashes,
             # Placeholder for other components expected by frontend:
-            # "hashes": None,
             # "detection": None
         }
     except Exception as e:

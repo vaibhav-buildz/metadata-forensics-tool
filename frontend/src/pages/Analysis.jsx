@@ -3,48 +3,61 @@ import MapDisplay from '../components/MapDisplay';
 import TamperingCard from '../components/TamperingCard';
 import HashCard from '../components/HashCard';
 import DetectionCard from '../components/DetectionCard';
+import { IconArrowLeft } from '@tabler/icons-react';
 
 export default function Analysis({ results, onBack }) {
   return (
-    <div className="min-h-screen py-8 px-4">
+    <div className="min-h-screen py-10 px-4 md:px-8 bg-[#F8FAFC]">
       <div className="max-w-6xl mx-auto">
+        
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-extrabold text-[#111827] tracking-tight">
+              Analysis Results
+            </h1>
+            <p className="text-[#6B7280] font-medium mt-1">
+              {results?.metadata?.filename || "Unknown file"}
+            </p>
+          </div>
           <button
             onClick={onBack}
-            className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 mb-4"
+            className="flex items-center gap-2 px-5 py-2.5 bg-white text-[#4B5563] font-semibold rounded-xl border border-slate-200 shadow-sm hover:shadow hover:border-blue-400 hover:text-blue-600 transition-all duration-200 w-fit group"
           >
-            ← Back
+            <IconArrowLeft size={18} stroke={2} className="group-hover:-translate-x-1 transition-transform" />
+            New Analysis
           </button>
-          <h1 className="text-3xl font-bold">📊 Analysis Results</h1>
         </div>
 
         {/* Results Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Metadata Card */}
-          {results?.metadata && (
-            <MetadataCard metadata={results.metadata} />
-          )}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          {/* Left Column */}
+          <div className="lg:col-span-7 space-y-6 flex flex-col">
+            {results?.metadata && (
+              <MetadataCard metadata={results.metadata} />
+            )}
+            
+            {results?.hashes && (
+              <HashCard hashes={results.hashes} />
+            )}
+            
+            {results?.detection && (
+              <DetectionCard detection={results.detection} />
+            )}
+          </div>
 
-          {/* Map Display */}
-          {results?.location && (
-            <MapDisplay location={results.location} />
-          )}
-
-          {/* Tampering Card */}
-          {results?.tampering && (
-            <TamperingCard tampering={results.tampering} />
-          )}
-
-          {/* Hash Card */}
-          {results?.hashes && (
-            <HashCard hashes={results.hashes} />
-          )}
-
-          {/* Detection Card */}
-          {results?.detection && (
-            <DetectionCard detection={results.detection} />
-          )}
+          {/* Right Column */}
+          <div className="lg:col-span-5 space-y-6 flex flex-col">
+            {results?.tampering && (
+              <TamperingCard tampering={results.tampering} />
+            )}
+            
+            {results?.location && (
+              <MapDisplay location={results.location} />
+            )}
+          </div>
+          
         </div>
       </div>
     </div>
