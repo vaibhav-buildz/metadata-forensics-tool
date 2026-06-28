@@ -8,12 +8,12 @@ import { IconArrowLeft } from '@tabler/icons-react';
 export default function Analysis({ results, onBack }) {
   return (
     <div className="min-h-screen py-10 px-4 md:px-8 bg-[#F8FAFC]">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-[1200px] mx-auto">
         
         {/* Header */}
         <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-extrabold text-[#111827] tracking-tight">
+            <h1 className="text-[28px] font-bold text-[#1F2937] tracking-tight">
               Analysis Results
             </h1>
             <p className="text-[#6B7280] font-medium mt-1">
@@ -33,7 +33,7 @@ export default function Analysis({ results, onBack }) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
           {/* Left Column */}
-          <div className="lg:col-span-7 space-y-6 flex flex-col">
+          <div className="lg:col-span-7 space-y-6 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-700">
             {results?.metadata && (
               <MetadataCard metadata={results.metadata} />
             )}
@@ -48,7 +48,7 @@ export default function Analysis({ results, onBack }) {
           </div>
 
           {/* Right Column */}
-          <div className="lg:col-span-5 space-y-6 flex flex-col">
+          <div className="lg:col-span-5 space-y-6 flex flex-col animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150 fill-mode-both">
             {results?.tampering && (
               <TamperingCard tampering={results.tampering} />
             )}

@@ -4,13 +4,13 @@ export default function DetectionCard({ detection }) {
   if (!detection) return null;
 
   return (
-    <div className="bg-[#FFFFFF] rounded-xl p-6 shadow-sm border border-slate-200 border-l-4 border-l-[#4F46E5] hover:shadow-md hover:-translate-y-1 transition-all duration-300 ease-out">
+    <div className="bg-[#FFFFFF] rounded-xl p-6 shadow-sm border border-slate-200 border-l-4 border-l-[#4F46E5] hover:shadow-md hover:-translate-y-[2px] transition-all duration-300 ease-out">
       
       <div className="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">
         <div className="p-2 bg-indigo-50 text-[#4F46E5] rounded-lg">
           <IconScanEye size={24} stroke={1.5} />
         </div>
-        <h2 className="text-[20px] font-semibold text-[#111827]">
+        <h2 className="text-[18px] font-semibold text-[#4F46E5]">
           AI Detection
         </h2>
       </div>

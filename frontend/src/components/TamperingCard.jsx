@@ -1,4 +1,4 @@
-import { IconShieldCheck, IconShieldX, IconAlertTriangle } from '@tabler/icons-react';
+import { IconAlertCircle, IconShieldCheck, IconShieldX, IconAlertTriangle } from '@tabler/icons-react';
 
 export default function TamperingCard({ tampering }) {
   if (!tampering) return null;
@@ -15,13 +15,13 @@ export default function TamperingCard({ tampering }) {
   const theme = getThemeColor();
 
   return (
-    <div className={`bg-[#FFFFFF] rounded-xl p-6 shadow-sm border border-slate-200 border-l-4 ${isTampered ? 'border-l-[#DC2626]' : 'border-l-[#16A34A]'} hover:shadow-md hover:-translate-y-1 transition-all duration-300 ease-out`}>
+    <div className="bg-[#FFFFFF] rounded-xl p-6 shadow-sm border border-slate-200 border-l-4 border-l-[#DC2626] hover:shadow-md hover:-translate-y-[2px] transition-all duration-300 ease-out">
       
       <div className="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">
         <div className={`p-2 rounded-lg ${isTampered ? 'bg-red-50 text-[#DC2626]' : 'bg-emerald-50 text-[#16A34A]'}`}>
-          {isTampered ? <IconShieldX size={24} stroke={1.5} /> : <IconShieldCheck size={24} stroke={1.5} />}
+          <IconAlertCircle size={24} stroke={1.5} />
         </div>
-        <h2 className="text-[20px] font-semibold text-[#111827]">
+        <h2 className="text-[18px] font-semibold text-[#DC2626]">
           Forensics Analysis
         </h2>
       </div>

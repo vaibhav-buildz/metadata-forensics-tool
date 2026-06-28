@@ -1,4 +1,4 @@
-import { IconFingerprint, IconCopy, IconCheck } from '@tabler/icons-react';
+import { IconLock, IconCopy, IconCheck } from '@tabler/icons-react';
 import { useState } from 'react';
 
 export default function HashCard({ hashes }) {
@@ -25,7 +25,7 @@ export default function HashCard({ hashes }) {
           {copiedHash === type ? <IconCheck size={18} className="text-[#16A34A]" /> : <IconCopy size={18} />}
         </button>
       </div>
-      <div className="bg-white p-3.5 rounded-lg border border-slate-200 font-mono text-[13px] text-[#4B5563] break-all overflow-x-auto whitespace-pre-wrap shadow-sm">
+      <div className="bg-white p-3.5 rounded-lg border border-slate-200 font-mono text-[13px] text-[#4B5563] truncate shadow-sm" title={value || "Not generated"}>
         {value || "Not generated"}
       </div>
       {description && (
@@ -37,13 +37,13 @@ export default function HashCard({ hashes }) {
   );
 
   return (
-    <div className="bg-[#FFFFFF] rounded-xl p-6 shadow-sm border border-slate-200 border-l-4 border-l-[#7C3AED] hover:shadow-md hover:-translate-y-1 transition-all duration-300 ease-out">
+    <div className="bg-[#FFFFFF] rounded-xl p-6 shadow-sm border border-slate-200 border-l-4 border-l-[#7C3AED] hover:shadow-md hover:-translate-y-[2px] transition-all duration-300 ease-out">
       
       <div className="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">
         <div className="p-2 bg-violet-50 text-[#7C3AED] rounded-lg">
-          <IconFingerprint size={24} stroke={1.5} />
+          <IconLock size={24} stroke={1.5} />
         </div>
-        <h2 className="text-[20px] font-semibold text-[#111827]">
+        <h2 className="text-[18px] font-semibold text-[#7C3AED]">
           Digital Fingerprints
         </h2>
       </div>
