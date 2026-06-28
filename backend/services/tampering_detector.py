@@ -1,228 +1,119 @@
+# pyright: reportMissingTypeStubs=false
+# pyright: reportUnknownMemberType=false
+# pyright: reportUnknownVariableType=false
+# pyright: reportUnknownArgumentType=false
 """
-Service 3: Image Tampering Detection
-Analyzes images for signs of manipulation using multiple heuristics.
+Tampering Detector Module
+Analyzes images for potential editing or tampering post-capture.
 """
 import os
-import logging
-from typing import Any
-import struct
 from datetime import datetime
-from PIL import Image
-import numpy as np
+from typing import Dict, Any, List, Tuple
+import cv2 # type: ignore
 
-from config import (
-    TAMPERING_SCORE_THRESHOLD,
-    DATE_MISMATCH_PENALTY,
-    EDITOR_SOFTWARE_PENALTY,
-    COMPRESSION_ARTIFACT_PENALTY,
-    ELA_ANOMALY_PENALTY,
-)
+def get_file_modification_date(file_path: str) -> str:
+    """Gets the file's last modification date on disk."""
+    try:
+        mod_time = os.path.getmtime(file_path)
+        return datetime.fromtimestamp(mod_time).strftime('%Y-%m-%d %H:%M:%S')
+    except Exception:
+        return "Unknown"
 
-logger = logging.getLogger(__name__)
-
-# Known editing software signatures
-EDITOR_SOFTWARE = [
-    "photoshop", "gimp", "lightroom", "capture one", "affinity",
-    "paint.net", "pixlr", "snapseed", "vsco", "canva",
-    "adobe", "corel", "paintshop", "darktable", "rawtherapee",
-    "luminar", "on1", "dxo", "topaz", "skylum",
-]
-
-
-def detect_tampering(file_path: str, metadata: dict[str, Any]) -> dict[str, Any]:
+def calculate_compression_variance(file_path: str) -> Tuple[float, bool]:
     """
-    Analyze an image for signs of tampering/manipulation.
+    Loads the image with OpenCV and calculates the Laplacian variance.
+    If the variance is highly anomalous, it suggests compression artifacts or editing.
+    Returns (variance, is_anomalous).
+    """
+    try:
+        # Load image via cv2
+        image = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
+        if image is None:
+            return 0.0, False
+            
+        # Calculate Laplacian variance
+        variance = float(cv2.Laplacian(image, cv2.CV_64F).var())
+        
+        # Determine if anomalous (e.g. exceptionally low variance often points to heavy re-compression or blurring)
+        is_anomalous = variance < 100.0 or variance > 10000.0
+        return variance, is_anomalous
+    except Exception:
+        return 0.0, False
 
-    Checks:
-    1. Date mismatch between EXIF and file system
-    2. Known editing software signatures
-    3. JPEG quantization table anomalies
-    4. Error Level Analysis (ELA)
+def generate_verdict(score: int) -> str:
+    """Returns a human-readable verdict based on the tampering score."""
+    if score <= 20:
+        return "✅ Authentic (no signs of tampering)"
+    elif score <= 50:
+        return "⚠️ Possible editing (minor inconsistencies)"
+    else:
+        return "🚩 Likely edited (strong evidence)"
 
-    Returns:
-        dict with is_tampered, score (0-100), verdict, and reasons list.
+def detect_tampering(file_path: str, exif_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Analyzes the image and EXIF data to detect post-capture tampering.
     """
     score = 0
-    reasons = []
-
+    reasons: List[str] = []
+    
     try:
-        # ── Check 1: Date mismatch ─────────────────────
-        date_result = _check_date_mismatch(metadata, file_path)
-        score += date_result["penalty"]
-        if date_result["reason"]:
-            reasons.append(date_result["reason"])
-
-        # ── Check 2: Editor software ───────────────────
-        editor_result = _check_editor_software(metadata)
-        score += editor_result["penalty"]
-        if editor_result["reason"]:
-            reasons.append(editor_result["reason"])
-
-        # ── Check 3: Compression artifacts ─────────────
-        compression_result = _check_compression_artifacts(file_path)
-        score += compression_result["penalty"]
-        if compression_result["reason"]:
-            reasons.append(compression_result["reason"])
-
-        # ── Check 4: ELA analysis ──────────────────────
-        ela_result = _check_ela(file_path)
-        score += ela_result["penalty"]
-        if ela_result["reason"]:
-            reasons.append(ela_result["reason"])
-
+        # -----------------------------------------------------
+        # A) EXIF vs File Date Comparison
+        # -----------------------------------------------------
+        file_mod_date = get_file_modification_date(file_path)
+        exif_date = exif_data.get("datetime")
+        
+        if exif_date and exif_date != "Unknown" and file_mod_date != "Unknown":
+            # Usually, if an image is edited, the modification date will be later than the EXIF DateTimeOriginal
+            # We perform a simple string comparison here.
+            if str(exif_date) != str(file_mod_date):
+                score += 40
+                reasons.append(f"EXIF date mismatch (taken {exif_date}, modified {file_mod_date})")
+        
+        # -----------------------------------------------------
+        # B) Compression Analysis
+        # -----------------------------------------------------
+        _, is_anomalous = calculate_compression_variance(file_path)
+        if is_anomalous:
+            score += 30
+            reasons.append("Compression artifacts detected")
+            
+        # -----------------------------------------------------
+        # C) Metadata Consistency
+        # -----------------------------------------------------
+        # Check if orientation tag is present. Many editors strip it.
+        orientation = exif_data.get("orientation")
+        if not orientation or orientation == "Unknown":
+            score += 20
+            reasons.append("Missing or removed orientation tag")
+            
+        # Cap score at 100
+        score = min(score, 100)
+        
+        # Generate confidence
+        confidence = "Low"
+        if score >= 50:
+            confidence = "High"
+        elif score >= 20:
+            confidence = "Medium"
+            
+        verdict = generate_verdict(score)
+        is_tampered = score >= 50
+        
+        return {
+            "is_tampered": is_tampered,
+            "tampering_score": score,
+            "confidence": confidence,
+            "reasons": reasons,
+            "verdict": verdict
+        }
     except Exception as e:
-        logger.warning(f"Tampering detection partial failure: {e}")
-
-    # Cap score at 100
-    score = min(score, 100)
-    is_tampered = score >= TAMPERING_SCORE_THRESHOLD
-
-    if is_tampered:
-        verdict = "⚠️ Likely Tampered"
-    elif score > 20:
-        verdict = "🟡 Suspicious"
-    else:
-        verdict = "✅ Authentic"
-
-    return {
-        "is_tampered": is_tampered,
-        "score": score,
-        "verdict": verdict,
-        "reasons": reasons,
-        "checks_performed": 4,
-    }
-
-
-def _check_date_mismatch(metadata: dict[str, Any], file_path: str) -> dict[str, Any]:
-    """Compare EXIF datetime vs file modification date."""
-    result = {"penalty": 0, "reason": None}
-
-    exif_date_str = metadata.get("datetime_original")
-    if not exif_date_str:
-        return result
-
-    try:
-        # Parse EXIF date (format: YYYY:MM:DD HH:MM:SS)
-        exif_date = datetime.strptime(exif_date_str, "%Y:%m:%d %H:%M:%S")
-        file_mtime = datetime.fromtimestamp(os.path.getmtime(file_path))
-
-        # If file modification is significantly before EXIF date, suspicious
-        diff = abs((file_mtime - exif_date).total_seconds())
-
-        if diff > 365 * 24 * 3600:  # More than 1 year difference
-            result["penalty"] = DATE_MISMATCH_PENALTY
-            result["reason"] = (
-                f"Date mismatch: EXIF says {exif_date_str}, "
-                f"file modified {file_mtime.strftime('%Y-%m-%d %H:%M:%S')} "
-                f"(>{int(diff / (24 * 3600))} days apart)"
-            )
-    except (ValueError, OSError):
-        pass
-
-    return result
-
-
-def _check_editor_software(metadata: dict[str, Any]) -> dict[str, Any]:
-    """Check if editing software is recorded in EXIF."""
-    result = {"penalty": 0, "reason": None}
-
-    software = metadata.get("software")
-    if not software:
-        return result
-
-    software_lower = software.lower()
-    for editor in EDITOR_SOFTWARE:
-        if editor in software_lower:
-            result["penalty"] = EDITOR_SOFTWARE_PENALTY
-            result["reason"] = f"Editing software detected: {software}"
-            break
-
-    return result
-
-
-def _check_compression_artifacts(file_path: str) -> dict[str, Any]:
-    """
-    Analyze JPEG quantization tables for re-compression artifacts.
-    Non-standard quantization tables may indicate the image was re-saved.
-    """
-    result = {"penalty": 0, "reason": None}
-
-    if not file_path.lower().endswith((".jpg", ".jpeg")):
-        return result
-
-    try:
-        with open(file_path, "rb") as f:
-            data = f.read()
-
-        # Look for multiple JPEG quantization table markers (DQT = 0xFFDB)
-        dqt_count = 0
-        pos = 0
-        while pos < len(data) - 1:
-            if data[pos] == 0xFF and data[pos + 1] == 0xDB:
-                dqt_count += 1
-            pos += 1
-
-        # Multiple DQT markers beyond the standard 2 (luma + chroma) may
-        # indicate re-compression
-        if dqt_count > 2:
-            result["penalty"] = COMPRESSION_ARTIFACT_PENALTY
-            result["reason"] = (
-                f"Unusual compression: {dqt_count} quantization tables found "
-                f"(standard is 2), suggesting re-compression"
-            )
-
-    except Exception as e:
-        logger.warning(f"Compression check failed: {e}")
-
-    return result
-
-
-def _check_ela(file_path: str) -> dict[str, Any]:
-    """
-    Perform Error Level Analysis (ELA).
-    Re-saves at a known quality and checks if error levels are uniform.
-    Non-uniform error levels suggest localized editing.
-    """
-    result = {"penalty": 0, "reason": None}
-
-    try:
-        with Image.open(file_path) as img:
-            if img.mode != "RGB":
-                img = img.convert("RGB")
-
-            # Re-save at quality 95
-            import tempfile
-            tmp = tempfile.NamedTemporaryFile(suffix=".jpg", delete=False)
-            tmp_path = tmp.name
-            tmp.close()
-
-            try:
-                img.save(tmp_path, "JPEG", quality=95)
-
-                with Image.open(tmp_path) as resaved:
-                    # Calculate difference
-                    original_arr = np.array(img, dtype=np.float32)
-                    resaved_arr = np.array(resaved, dtype=np.float32)
-
-                    diff = np.abs(original_arr - resaved_arr)
-                    mean_error = np.mean(diff)
-                    max_error = np.max(diff)
-                    std_error = np.std(diff)
-
-                    # High standard deviation relative to mean suggests
-                    # non-uniform error levels (localized editing)
-                    if mean_error > 0 and (std_error / (mean_error + 1e-6)) > 2.5:
-                        result["penalty"] = ELA_ANOMALY_PENALTY
-                        result["reason"] = (
-                            f"ELA anomaly: non-uniform error levels detected "
-                            f"(mean={mean_error:.1f}, std={std_error:.1f}), "
-                            f"suggesting localized editing"
-                        )
-            finally:
-                if os.path.exists(tmp_path):
-                    os.unlink(tmp_path)
-
-    except Exception as e:
-        logger.warning(f"ELA check failed: {e}")
-
-    return result
+        # If analysis fails: return safe default with 0 score
+        print(f"Warning: Tampering analysis failed. Reason: {e}")
+        return {
+            "is_tampered": False,
+            "tampering_score": 0,
+            "confidence": "Low",
+            "reasons": ["Analysis failed or skipped"],
+            "verdict": generate_verdict(0)
+        }

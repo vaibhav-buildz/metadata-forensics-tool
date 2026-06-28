@@ -1,43 +1,52 @@
-import React from 'react'
-import { useLocation, Navigate } from 'react-router-dom'
-import Results from '../components/Results'
+import MetadataCard from '../components/MetadataCard';
+import MapDisplay from '../components/MapDisplay';
+import TamperingCard from '../components/TamperingCard';
+import HashCard from '../components/HashCard';
+import DetectionCard from '../components/DetectionCard';
 
-/**
- * Standalone analysis results page.
- * Receives results via router state (from Home page navigation).
- */
-export default function Analysis() {
-  const location = useLocation()
-  const data = location.state?.results
-  const preview = location.state?.preview
-
-  // Redirect to home if no data
-  if (!data) {
-    return <Navigate to="/" replace />
-  }
-
+export default function Analysis({ results, onBack }) {
   return (
-    <div className="py-10 px-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
-          <div className="flex items-center gap-4">
-            {preview && (
-              <img
-                src={preview}
-                alt="Analyzed"
-                className="w-14 h-14 rounded-xl object-cover border border-white/10"
-              />
-            )}
-            <div>
-              <h1 className="text-2xl font-bold text-white">Analysis Results</h1>
-              <p className="text-sm text-gray-400 mt-0.5">{data.filename}</p>
-            </div>
-          </div>
-          <a href="/" className="btn-secondary text-sm">← Analyze Another</a>
+    <div className="min-h-screen py-8 px-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <button
+            onClick={onBack}
+            className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 mb-4"
+          >
+            ← Back
+          </button>
+          <h1 className="text-3xl font-bold">📊 Analysis Results</h1>
         </div>
 
-        <Results data={data} preview={preview} />
+        {/* Results Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Metadata Card */}
+          {results?.metadata && (
+            <MetadataCard metadata={results.metadata} />
+          )}
+
+          {/* Map Display */}
+          {results?.location && (
+            <MapDisplay location={results.location} />
+          )}
+
+          {/* Tampering Card */}
+          {results?.tampering && (
+            <TamperingCard tampering={results.tampering} />
+          )}
+
+          {/* Hash Card */}
+          {results?.hashes && (
+            <HashCard hashes={results.hashes} />
+          )}
+
+          {/* Detection Card */}
+          {results?.detection && (
+            <DetectionCard detection={results.detection} />
+          )}
+        </div>
       </div>
     </div>
-  )
+  );
 }

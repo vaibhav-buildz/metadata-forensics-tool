@@ -1,42 +1,32 @@
-import axios from 'axios'
+const API_BASE_URL = "http://127.0.0.1:8000/api";
 
-const API_BASE = import.meta.env.VITE_API_URL || ''
+export const analyzeImage = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
 
-const api = axios.create({
-  baseURL: API_BASE,
-  timeout: 120000, // 2 minutes for large files + YOLO inference
-})
+  try {
+    const response = await fetch(`${API_BASE_URL}/analyze`, {
+      method: "POST",
+      body: formData,
+    });
 
-/**
- * Upload an image file for forensic analysis.
- * @param {File} file – The image file to analyze
- * @param {Function} onProgress – Progress callback (0-100)
- * @returns {Promise<Object>} Analysis results
- */
-export async function analyzeImage(file, onProgress) {
-  const formData = new FormData()
-  formData.append('file', file)
+    if (!response.ok) {
+      throw new Error("Analysis failed");
+    }
 
-  const response = await api.post('/api/analyze', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-    onUploadProgress: (event) => {
-      if (onProgress && event.total) {
-        const percent = Math.round((event.loaded / event.total) * 100)
-        onProgress(percent)
-      }
-    },
-  })
+    return await response.json();
+  } catch (error) {
+    console.error("Error analyzing image:", error);
+    throw error;
+  }
+};
 
-  return response.data
-}
-
-/**
- * Check backend health.
- * @returns {Promise<Object>} Health status
- */
-export async function checkHealth() {
-  const response = await api.get('/api/health')
-  return response.data
-}
-
-export default api
+export const checkHealth = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/health`);
+    return await response.json();
+  } catch (error) {
+    console.error("Error checking health:", error);
+    return null;
+  }
+};
