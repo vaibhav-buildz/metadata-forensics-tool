@@ -1,0 +1,46 @@
+# ── Python ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+.env
+
+# ── Node ────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp.*
+
+# ── Build ───────────────────────────────────────────────
+frontend/dist/
+frontend/build/
+*.tsbuildinfo
+
+# ── IDE ─────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── YOLO model weights ─────────────────────────────────
+*.pt
+*.onnx
+runs/
+
+# ── Temp ────────────────────────────────────────────────
+tmp/
+temp/
+*.tmp
+uploads/
